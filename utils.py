@@ -119,39 +119,67 @@ def generate_plot_1d(obj_func, x_opt):
 def generate_plot_2d_contour(obj_func, x_opt):
     """
     Generate a 2D contour plot for a function of two variables, x & y.
+    Safely handles potential math/domain errors by substituting NaN.
     """
-    # Grid
+    import numpy as np
+    import plotly.graph_objects as go
+    
+    # Create a grid
     x_vals = np.linspace(-10, 10, 50)
     y_vals = np.linspace(-10, 10, 50)
     X, Y = np.meshgrid(x_vals, y_vals)
-    Z = np.zeros_like(X)
-    
+
+    # Make sure Z is a float array
+    Z = np.zeros_like(X, dtype=float)
+
+    # Safely evaluate the function on each grid point
     for i in range(X.shape[0]):
         for j in range(X.shape[1]):
-            Z[i, j] = obj_func([X[i, j], Y[i, j]])
-            
-    fig = go.Figure(data=[
-        go.Contour(
-            z=Z,
-            x=x_vals,
-            y=y_vals,
-            colorscale='Viridis',
-            contours_coloring='heatmap',
-            line_smooth=1.3
+            try:
+                val = obj_func([X[i, j], Y[i, j]])
+                # If the function returns something invalid or complex, catch it:
+                if np.iscomplex(val):
+                    Z[i, j] = np.nan
+                else:
+                    Z[i, j] = float(val)
+            except:
+                Z[i, j] = np.nan
+
+    # Build the contour figure
+    fig = go.Figure(
+        data=[
+            go.Contour(
+                z=Z,
+                x=x_vals,
+                y=y_vals,
+                colorscale="Viridis",
+                # We configure "contours" via a dictionary:
+                contours=dict(
+                    coloring="heatmap",   # or "lines", etc.
+                    showlines=False,
+                    smoothing=1.3
+                )
+            )
+        ]
+    )
+
+    # Mark the optimum on the contour
+    fig.add_trace(
+        go.Scatter(
+            x=[x_opt[0]],
+            y=[x_opt[1]],
+            mode='markers',
+            marker=dict(color='red', size=10),
+            name='Optimal Point'
         )
-    ])
-    fig.add_trace(go.Scatter(
-        x=[x_opt[0]],
-        y=[x_opt[1]],
-        mode='markers',
-        marker=dict(color='red', size=10),
-        name='Optimal Point'
-    ))
+    )
+
     fig.update_layout(
         title='2D Contour Plot',
         xaxis_title='x',
         yaxis_title='y'
     )
+
     return fig
 
 
