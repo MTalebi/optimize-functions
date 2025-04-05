@@ -85,6 +85,3 @@ You will see:
 - Parsing advanced LaTeX with complex symbols might fail. Simple expressions work best.  
 - For higher than 3 variables, only numeric results are shown (no advanced plots).  
 - The PSO method is emulated with `differential_evolution` + a local BFGS refine, but no classic particle swarm approach is provided by default.
-
-
-This structure should serve as a solid starting point for a straightforward, professional Streamlit app with separate utilities (`utils.py`) and main application logic (`main.py`), plus a descriptive `README.md`. Feel free to adjust or extend any parts as needed for your specific use case.
